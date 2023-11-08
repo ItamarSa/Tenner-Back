@@ -33,7 +33,6 @@ export async function addGig(req, res) {
 
     try {
         const gig = req.body
-        console.log('gig:', gig)
         // gig.owner._id = loggedinUser._id
         const addedGig = await gigService.add(gig)
         res.json(addedGig)

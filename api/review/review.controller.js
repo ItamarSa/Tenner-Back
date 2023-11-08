@@ -36,18 +36,16 @@ export async function addReview(req, res) {
  
     try {
         var review = req.body
-        console.log('review4', review)
         review.byUserId = loggedinUser._id
         review = await reviewService.add(review)
         
         // prepare the updated review for sending out
         review.aboutGig = await gigService.getById(review.aboutGigId)
-        console.log('hellow', review)
         
         // Give the user credit for adding a review
         // var user = await userService.getById(review.byUserId)
         // user.score += 10
-        loggedinUser.score += 10
+        // loggedinUser.score += 10
 
         loggedinUser = await userService.update(loggedinUser)
         review.byUser = loggedinUser
@@ -56,8 +54,8 @@ export async function addReview(req, res) {
         const loginToken = authService.getLoginToken(loggedinUser)
         res.cookie('loginToken', loginToken)
 
-        delete review.aboutGigId
-        delete review.byUserId
+        // delete review.aboutGigId
+        // delete review.byUserId
 
         // socketService.broadcast({type: 'review-added', data: review, userId: loggedinUser._id})
         // socketService.emitToUser({type: 'review-about-you', data: review, userId: review.aboutUser._id})

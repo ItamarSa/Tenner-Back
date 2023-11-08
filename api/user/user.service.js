@@ -35,10 +35,8 @@ async function query(filterBy = {}) {
 
 async function getById(userId) {
     try {
-        console.log('userId:', userId)
         const collection = await dbService.getCollection('users')
         const user = await collection.findOne({ _id: ObjectId(userId) })
-        console.log('user:', user)
         delete user.password
         return user
     } catch (err) {
@@ -50,7 +48,6 @@ async function getByUsername(username) {
     try {
         const collection = await dbService.getCollection('users')
         const user = await collection.findOne({ username })
-        console.log('userofgetuser', user)
         return user
     } catch (err) {
         logger.error(`while finding user ${username}`, err)
@@ -71,7 +68,6 @@ async function remove(userId) {
 async function update(user) {
     try {
         // peek only updatable fields!
-        console.log('userService:', user)
         const userToSave = {
             _id: ObjectId(user._id),
             userName: user.username,
@@ -79,7 +75,6 @@ async function update(user) {
             imgUrl: user.imgUrl,
             
         }
-        console.log('userToSaveService:', userToSave)
         const collection = await dbService.getCollection('users')
         await collection.updateOne({ _id: userToSave._id }, { $set: userToSave })
         return userToSave
@@ -90,7 +85,6 @@ async function update(user) {
 }
 
 async function add(user) {
-    console.log('user:', user)
     try {
         // Validate that there are no such user:
         const existUser = await getByUsername(user.username)
@@ -101,6 +95,7 @@ async function add(user) {
             username: user.username,
             password: user.password,
             email: user.email,
+            createdAt:user.createdAt,
             imgUrl: user.imgUrl,
             store:user.store,
             response:user.response,

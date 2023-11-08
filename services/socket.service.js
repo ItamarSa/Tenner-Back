@@ -10,45 +10,59 @@ export function setupSocketAPI(http) {
         }
     })
     gIo.on('connection', socket => {
-        console.log("hellow!!!!!!!!!cls");
-        logger.info(`New connected socket [id: ${socket.id}]`)
+        console.log("hello!!!!!!!!!cls");
+        logger.info(`New connected socket [id: ${socket.id}]`);
         socket.on('disconnect', socket => {
-            logger.info(`Socket disconnected [id: ${socket.id}]`)
-        })
+            logger.info(`Socket disconnected [id: ${socket.id}]`);
+        });
         socket.on('chat-set-topic', topic => {
-            if (socket.myTopic === topic) return
+            if (socket.myTopic === topic) return;
             if (socket.myTopic) {
-                socket.leave(socket.myTopic)
-                logger.info(`Socket is leaving topic ${socket.myTopic} [id: ${socket.id}]`)
+                socket.leave(socket.myTopic);
+                logger.info(`Socket is leaving topic ${socket.myTopic} [id: ${socket.id}]`);
             }
-            socket.join(topic)
-            socket.myTopic = topic
-        })
-        socket.on('chat-send-msg', msg => {
-            logger.info(`New chat msg from socket [id: ${socket.id}], emitting to topic ${socket.myTopic}`)
-            // emits to all sockets:
-            // gIo.emit('chat addMsg', msg)
-            // emits only to sockets in the same room
-            gIo.to(socket.myTopic).emit('chat-add-msg', msg)
-        })
-        socket.on('user-watch', userId => {
-            logger.info(`user-watch from socket [id: ${socket.id}], on user ${userId}`)
-            socket.join('watching:' + userId)
+            socket.join(topic);
+            socket.myTopic = topic;
+        });
+        socket.on('new-order', ( gig ) => {
+            const ownerId=gig.owner._id
+            // gIo.to(socket.ownerId).emit('order-received', gig);
+            emitToUser({type:"order-received",data:gig,userId:ownerId});
+            // Handle the 'new-order' event and perform your custom logic
 
-        })
-        
+            // Check if gig.owner.id === loggedInUser.id
+            // const loggedInUser = userService.getLoggedinUser();
+            // if (gig.owner.id === loggedInUser.id) {
+            //     // Emit the same 'new-order' event to the front end
+            //     // gIo.emit(SOCKET_EVENT_NEW_ORDER, { gig });
+            //     showSuccessMsg('New order')
+            //     console.log('New order');
+            // }
+        });
+        // emitToUser({
+        //     type: 'user-watch-success', // Use the event type that matches your front-end code
+        //     data: 'Someone watched your profile',
+        //     userId: socket.userId,
+        // });
+        socket.on('chat-send-msg', msg => {
+            logger.info(`New chat msg from socket [id: ${socket.id}], emitting to topic ${socket.myTopic}`);
+            gIo.to(socket.myTopic).emit('chat-add-msg', msg);
+        });
+        socket.on('user-watch', userId => {
+            logger.info(`user-watch from socket [id: ${socket.id}], on user ${userId}`);
+            socket.join('watching:' + userId);
+        });
 
         // Auth
         socket.on('set-user-socket', userId => {
-            logger.info(`Setting socket.userId = ${userId} for socket [id: ${socket.id}]`)
-            socket.userId = userId
-        })
+            logger.info(`Setting socket.userId = ${userId} for socket [id: ${socket.id}]`);
+            socket.userId = userId;
+        });
         socket.on('unset-user-socket', () => {
-            logger.info(`Removing socket.userId for socket [id: ${socket.id}]`)
-            delete socket.userId
-        })
-
-    })
+            logger.info(`Removing socket.userId for socket [id: ${socket.id}]`);
+            delete socket.userId;
+        });
+    });
 }
 
 function emitTo({ type, data, label }) {
@@ -57,17 +71,24 @@ function emitTo({ type, data, label }) {
 }
 
 async function emitToUser({ type, data, userId }) {
-    userId = userId.toString()
-    const socket = await _getUserSocket(userId)
+    console.log('socet*********************',userId)
+    if (userId) {
+        userId = userId.toString();
+        const socket = await _getUserSocket(userId);
 
-    if (socket) {
-        logger.info(`Emiting event: ${type} to user: ${userId} socket [id: ${socket.id}]`)
-        socket.emit(type, data)
+        if (socket) {
+            logger.info(`Emitting event: ${type} to user: ${userId} socket [id: ${socket.id}]`);
+            socket.emit(type, data);
+        } else {
+            logger.info(`No active socket for user: ${userId}`);
+            // Handle this case as needed
+            // _printSockets()
+        }
     } else {
-        logger.info(`No active socket for user: ${userId}`)
-        // _printSockets()
+        logger.warn('User ID is not defined');
     }
 }
+
 
 // If possible, send to all sockets BUT not the current socket 
 // Optionally, broadcast to a room / to all

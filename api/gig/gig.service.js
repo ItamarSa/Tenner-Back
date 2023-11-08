@@ -6,12 +6,10 @@ import { logger } from '../../services/logger.service.js'
 import { utilService } from '../../services/util.service.js'
 
 async function query(filterBy = {}) {
-    console.log('filterBy2:', filterBy)
     let criteria = {}
 
     try {
         if (filterBy.txt) {
-            // console.log("entred ");
             // const regex = new RegExp(filterBy.txt, 'i');
             // criteria.$or = [
             //     { title: { $regex: filterBy.txt, $options: 'i' } },
@@ -21,7 +19,6 @@ async function query(filterBy = {}) {
         }
 
         if (filterBy.tags && filterBy.tags.length > 0) {
-            // console.log('variable:',filterBy.tags)
             criteria.tags = { $in: filterBy.tags };
         }
 
@@ -33,10 +30,8 @@ async function query(filterBy = {}) {
         //     }
         // }
 
-        // console.log('filterBy', filterBy)
         const collection = await dbService.getCollection('gigs')
         // let gigs =  collection
-        // console.log('gigs:', gigs)
         let gigs = await collection.find({}).toArray()
         if (filterBy.txt) {
             const regex = new RegExp(filterBy.txt, 'i');
@@ -56,19 +51,16 @@ async function query(filterBy = {}) {
         if (filterBy.buyerId) {
             orders = orders.filter((order) => order.buyer._id === filterBy.buyerId);
         }
-        // console.log('gigs', gigs)
 
         return gigs
     } catch (err) {
         logger.error('cannot find gigs', err)
-        console.log("error qury ", err)
         throw err
     }
 }
 
 async function getById(gigId) {
     try {
-        console.log('gigId:', gigId)
         const collection = await dbService.getCollection('gigs')
         const gig = collection.findOne({ _id: new ObjectId(gigId) })
         return gig
@@ -102,17 +94,21 @@ async function add(gig) {
 async function update(gig) {
     try {
         const gigToSave = {
-
-            name: gig.name,
+            _id: ObjectId(gig._id),
+            imgUrl: gig.imgUrl,
             title: gig.title,
-            tags: gig.tags,
+            about: gig.about,
             price: gig.price,
             rate: gig.rate,
+            createdAt: gig.createdAt,
+            tags: gig.tags,
+            owner: gig.owner,
+
 
         }
         const collection = await dbService.getCollection('gigs')
         await collection.updateOne({ _id: ObjectId(gig._id) }, { $set: gigToSave })
-        return gig
+        return gigToSave
     } catch (err) {
         logger.error(`cannot update gig ${gig}`, err)
         throw err
