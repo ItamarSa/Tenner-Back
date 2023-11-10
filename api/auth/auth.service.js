@@ -11,7 +11,7 @@ export const authService = {
     validateToken
 }
 
-let hash
+
 const cryptr = new Cryptr(process.env.SECRET1 || 'Secret-Puk-1234')
 
 
@@ -20,29 +20,31 @@ async function login(username, password) {
     logger.debug(`auth.service - login with username: ${username}`)
 
     const user = await userService.getByUsername(username)
+    console.log('userlogin:', user,password)
     if (!user) throw new Error('Invalid username or password')
-    console.log('variable:', hash, password)
-    const match = await bcrypt.compare(password, hash)
+    const match = await bcrypt.compare(password, user.password)
     if (!match) throw new Error('Invalid username or password')
 
     delete user.password
     return user
 }
 
-
-async function signup(user) {
+// {username, password,email,imgUrl,createdAt,store,response,from,delivery,languages,level,queue,reviews,aboutMe}
+async function signup({username, password,email,imgUrl,createdAt,store,response,from,delivery,languages,level,queue,reviews,aboutMe}) {
     const saltRounds = 10
 
-    logger.debug(`auth.service - signup with username: ${user.username}, email: ${user.email}`)
-    if (!user.username || !user.password || !user.email) throw new Error('Missing details')
+    logger.debug(`auth.service - signup with username: ${username}, email: ${email}`)
+    if (!username || !password || !email) throw new Error('Missing details')
 
-    hash = await bcrypt.hash(user.password, saltRounds)
+    const hash = await bcrypt.hash(password, saltRounds)
+    console.log('hash', hash)
+
     // user.password=hash
-    return userService.add(user)
+    return userService.add({ username, password: hash, email,imgUrl,createdAt,store,response,from,delivery,languages,level,queue,reviews,aboutMe })
 }
 
 function getLoginToken(user) {
-    const userInfo = { _id: user._id, fullname: user.fullname }
+    const userInfo = { _id: user._id, email: user.email }
     return cryptr.encrypt(JSON.stringify(userInfo))
 }
 
