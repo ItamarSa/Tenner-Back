@@ -46,6 +46,6 @@ export async function logout(req, res){
         res.clearCookie('loginToken')
         res.send({ msg: 'Logged out successfully' })
     } catch (err) {
-        res.status(500).send({ err: 'Failed to logout' })
+        res.status(400).send({ err: 'Failed to logout' })
     }
 }
