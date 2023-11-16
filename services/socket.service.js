@@ -56,11 +56,15 @@ export function setupSocketAPI(http) {
         // Auth
         socket.on('set-user-socket', userId => {
             logger.info(`Setting socket.userId = ${userId} for socket [id: ${socket.id}]`);
+            console.log('socket.id', socket.userId)
             socket.userId = userId;
+            console.log('socket.id', socket.userId)
         });
         socket.on('unset-user-socket', () => {
             logger.info(`Removing socket.userId for socket [id: ${socket.id}]`);
+            console.log('socket.id', socket.userId)
             delete socket.userId;
+            console.log('socket.id', socket.userId)
         });
     });
 }
